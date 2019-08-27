@@ -51,6 +51,7 @@ import java.util.Map.Entry;
  *
  * @author zhangliang
  * @author panjuan
+ * @author sunbufu
  */
 @RequiredArgsConstructor
 public final class TableMetaDataLoader {
@@ -60,6 +61,8 @@ public final class TableMetaDataLoader {
     private static final String TYPE_NAME = "TYPE_NAME";
     
     private static final String INDEX_NAME = "INDEX_NAME";
+    
+    private static final String TABLE_TYPE = "TABLE_TYPE";
     
     private final DataSourceMetas dataSourceMetas;
     
@@ -140,15 +143,26 @@ public final class TableMetaDataLoader {
                                               final String logicTableName, final String actualTableName, final String generateKeyColumnName, final EncryptRule encryptRule) throws SQLException {
         if (isTableExist(connection, catalog, actualTableName)) {
             return new TableMetaData(
-                    getColumnMetaDataList(connection, catalog, logicTableName, actualTableName, generateKeyColumnName, encryptRule), getLogicIndexes(connection, catalog, actualTableName));
+                    getColumnMetaDataList(connection, catalog, logicTableName, actualTableName, generateKeyColumnName, encryptRule),
+                    getLogicIndexes(connection, catalog, actualTableName),
+                    getTableType(connection, catalog, actualTableName).orNull());
         }
-        return new TableMetaData(Collections.<ColumnMetaData>emptyList(), Collections.<String>emptySet());
+        return new TableMetaData(Collections.<ColumnMetaData>emptyList(), Collections.<String>emptySet(), null);
     }
     
     private boolean isTableExist(final Connection connection, final String catalog, final String actualTableName) throws SQLException {
         try (ResultSet resultSet = connection.getMetaData().getTables(catalog, null, actualTableName, null)) {
             return resultSet.next();
         }
+    }
+    
+    private Optional<String> getTableType(final Connection connection, final String catalog, final String actualTableName) throws SQLException {
+        try (ResultSet resultSet = connection.getMetaData().getTables(catalog, null, actualTableName, null)) {
+            if (resultSet.next()) {
+                return Optional.of(resultSet.getString(TABLE_TYPE));
+            }
+        }
+        return Optional.absent();
     }
     
     private Collection<ColumnMetaData> getColumnMetaDataList(final Connection connection, final String catalog, final String logicTableName, final String actualTableName, 

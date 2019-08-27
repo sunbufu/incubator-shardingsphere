@@ -32,6 +32,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Table meta data.
  *
  * @author panjuan
+ * @author sunbufu
  */
 @Getter
 @EqualsAndHashCode
@@ -42,9 +43,12 @@ public final class TableMetaData {
     
     private final Collection<String> indexes;
     
-    public TableMetaData(final Collection<ColumnMetaData> columnMetaDataList, final Collection<String> indexes) {
+    private final String type;
+    
+    public TableMetaData(final Collection<ColumnMetaData> columnMetaDataList, final Collection<String> indexes, final String type) {
         columns = getColumns(columnMetaDataList);
         this.indexes = new CopyOnWriteArraySet<>(indexes);
+        this.type = type;
     }
     
     private Map<String, ColumnMetaData> getColumns(final Collection<ColumnMetaData> columnMetaDataList) {

@@ -166,7 +166,7 @@ public final class SelectItemsTest {
     
     private TableMetas createTableMetas() {
         Map<String, TableMetaData> tables = new HashMap<>(1, 1);
-        tables.put("table", new TableMetaData(Arrays.asList(new ColumnMetaData("id", "number", true), new ColumnMetaData("name", "varchar", false)), Collections.<String>emptyList()));
+        tables.put("table", new TableMetaData(Arrays.asList(new ColumnMetaData("id", "number", true), new ColumnMetaData("name", "varchar", false)), Collections.<String>emptyList(), null));
         return new TableMetas(tables);
     }
     

@@ -48,7 +48,7 @@ public final class ShardingDropIndexOptimizeEngineTest {
         dropIndexStatement = new DropIndexStatement();
         dropIndexStatement.getIndexes().add(new IndexSegment(0, 0, "idx"));
         Map<String, TableMetaData> tables = new HashMap<>(1, 1);
-        tables.put("meta_tbl", new TableMetaData(Collections.<ColumnMetaData>emptyList(), Collections.singletonList("idx")));
+        tables.put("meta_tbl", new TableMetaData(Collections.<ColumnMetaData>emptyList(), Collections.singletonList("idx"), null));
         tableMetas = new TableMetas(tables);
     }
     

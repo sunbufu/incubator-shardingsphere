@@ -18,6 +18,9 @@
 package org.apache.shardingsphere.shardingproxy.backend;
 
 import lombok.SneakyThrows;
+import org.apache.shardingsphere.core.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.core.metadata.table.TableMetaData;
+import org.apache.shardingsphere.core.metadata.table.TableMetas;
 import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.shardingproxy.backend.schema.LogicSchema;
 import org.apache.shardingsphere.shardingproxy.backend.schema.LogicSchemas;
@@ -27,6 +30,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,8 +51,35 @@ public final class MockLogicSchemasUtil {
     private static Map<String, LogicSchema> mockLogicSchemas(final String prefix, final int size) {
         Map<String, LogicSchema> result = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
-            result.put(prefix + "_" + i, mock(LogicSchema.class));
+            result.put(prefix + "_" + i, getLogicSchema());
         }
+        return result;
+    }
+    
+    private static LogicSchema getLogicSchema() {
+        LogicSchema result = mock(LogicSchema.class);
+        doReturn(getShardingSphereMetaData()).when(result).getMetaData();
+        return result;
+    }
+    
+    private static ShardingSphereMetaData getShardingSphereMetaData() {
+        ShardingSphereMetaData result = mock(ShardingSphereMetaData.class);
+        doReturn(getTableMetas()).when(result).getTables();
+        return result;
+    }
+    
+    private static TableMetas getTableMetas() {
+        final TableMetas result = mock(TableMetas.class);
+        TableMetaData orderTableMetaData = mock(TableMetaData.class);
+        when(orderTableMetaData.getType()).thenReturn("TABLE");
+        TableMetaData orderItemTableMetaData = mock(TableMetaData.class);
+        when(orderItemTableMetaData.getType()).thenReturn("VIEW");
+        TableMetaData userTableMetaData = mock(TableMetaData.class);
+        when(userTableMetaData.getType()).thenReturn("INFORMATION_SCHEMA");
+        
+        when(result.get("t_order")).thenReturn(orderTableMetaData);
+        when(result.get("t_order_item")).thenReturn(orderItemTableMetaData);
+        when(result.get("t_user")).thenReturn(userTableMetaData);
         return result;
     }
     

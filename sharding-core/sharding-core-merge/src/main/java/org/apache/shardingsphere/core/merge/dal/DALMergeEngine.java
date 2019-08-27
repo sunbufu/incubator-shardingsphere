@@ -65,7 +65,7 @@ public final class DALMergeEngine implements MergeEngine {
             return new ShowTableStatusMergedResult(shardingRule, queryResults, tableMetas);
         }
         if (dalStatement instanceof ShowTablesStatement) {
-            return new ShowTablesMergedResult();
+            return new ShowTablesMergedResult(shardingRule, (ShowTablesStatement)dalStatement, tableMetas);
         }
         if (dalStatement instanceof ShowCreateTableStatement) {
             return new ShowCreateTableMergedResult(shardingRule, queryResults, tableMetas);

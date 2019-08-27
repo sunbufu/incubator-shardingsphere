@@ -113,11 +113,11 @@ public abstract class AbstractSQLRouteTest {
     
     private TableMetas buildTableMetas() {
         Map<String, TableMetaData> tableMetaDataMap = new HashMap<>(3, 1);
-        tableMetaDataMap.put("t_order", new TableMetaData(Arrays.asList(new ColumnMetaData("order_id", "int", true), new ColumnMetaData("user_id", "int", false), 
-                        new ColumnMetaData("status", "int", false)), Collections.<String>emptySet()));
+        tableMetaDataMap.put("t_order", new TableMetaData(Arrays.asList(new ColumnMetaData("order_id", "int", true), new ColumnMetaData("user_id", "int", false),
+                        new ColumnMetaData("status", "int", false)), Collections.<String>emptySet(), null));
         tableMetaDataMap.put("t_order_item", new TableMetaData(Arrays.asList(new ColumnMetaData("item_id", "int", true), new ColumnMetaData("order_id", "int", false),
-                new ColumnMetaData("user_id", "int", false), new ColumnMetaData("status", "varchar", false), 
-                new ColumnMetaData("c_date", "timestamp", false)), Collections.<String>emptySet()));
+                new ColumnMetaData("user_id", "int", false), new ColumnMetaData("status", "varchar", false),
+                new ColumnMetaData("c_date", "timestamp", false)), Collections.<String>emptySet(), null));
         return new TableMetas(tableMetaDataMap);
     }
 }

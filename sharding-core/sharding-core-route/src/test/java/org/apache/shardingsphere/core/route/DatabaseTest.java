@@ -91,7 +91,7 @@ public final class DatabaseTest {
         ColumnMetaData idColumnMetaData = new ColumnMetaData("id", "int", true);
         ColumnMetaData nameColumnMetaData = new ColumnMetaData("user_id", "int", false);
         TableMetas tableMetas = mock(TableMetas.class);
-        when(tableMetas.get("tesT")).thenReturn(new TableMetaData(Arrays.asList(idColumnMetaData, nameColumnMetaData), Arrays.asList("id", "user_id")));
+        when(tableMetas.get("tesT")).thenReturn(new TableMetaData(Arrays.asList(idColumnMetaData, nameColumnMetaData), Arrays.asList("id", "user_id"), null));
         ShardingSphereMetaData result = mock(ShardingSphereMetaData.class);
         when(result.getTables()).thenReturn(tableMetas);
         return result;
@@ -115,7 +115,7 @@ public final class DatabaseTest {
         ColumnMetaData idColumnMetaData = new ColumnMetaData("id", "int", true);
         ColumnMetaData nameColumnMetaData = new ColumnMetaData("user_id", "int", false);
         TableMetas tableMetas = mock(TableMetas.class);
-        when(tableMetas.get("tbl_pagination")).thenReturn(new TableMetaData(Arrays.asList(idColumnMetaData, nameColumnMetaData), Arrays.asList("id", "user_id")));
+        when(tableMetas.get("tbl_pagination")).thenReturn(new TableMetaData(Arrays.asList(idColumnMetaData, nameColumnMetaData), Arrays.asList("id", "user_id"), null));
         ShardingSphereMetaData result = mock(ShardingSphereMetaData.class);
         when(result.getTables()).thenReturn(tableMetas);
         return result;

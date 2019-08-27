@@ -17,12 +17,8 @@
 
 package org.apache.shardingsphere.shardingproxy.backend.text.admin;
 
-import com.google.common.base.Function;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.shardingsphere.core.merge.MergedResult;
 import org.apache.shardingsphere.core.merge.dal.show.ShowTablesMergedResult;
 import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.ShowTablesStatement;
 import org.apache.shardingsphere.core.parse.util.SQLUtil;
@@ -39,12 +35,8 @@ import org.apache.shardingsphere.shardingproxy.backend.schema.LogicSchemas;
 import org.apache.shardingsphere.shardingproxy.backend.text.TextProtocolBackendHandler;
 import org.apache.shardingsphere.shardingproxy.context.ShardingProxyContext;
 
-import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -59,7 +51,7 @@ public final class ShowTablesBackendHandler implements TextProtocolBackendHandle
     
     private final BackendConnection backendConnection;
     
-    private MergedResult mergedResult;
+    private ShowTablesMergedResult mergedResult;
     
     @Override
     public BackendResponse execute() {
@@ -67,11 +59,11 @@ public final class ShowTablesBackendHandler implements TextProtocolBackendHandle
         if (null == schema) {
             return new ErrorResponse(new NoDatabaseSelectedException());
         }
-        if (!LogicSchemas.getInstance().schemaExists(schema) || !isAuthorizedSchema(schema)) {
+        LogicSchema logicSchema = LogicSchemas.getInstance().getLogicSchema(schema);
+        if (null == logicSchema || !isAuthorizedSchema(schema)) {
             return new ErrorResponse(new UnknownDatabaseException(schema));
         }
-        List<String> tableNames = filterWithPattern(getTableNames(schema), getPattern());
-        mergedResult = new ShowTablesMergedResult(tableNames, showTablesStatement.isFull() ? getTableTypes(tableNames) : Collections.<String>emptyList());
+        mergedResult = new ShowTablesMergedResult(logicSchema.getShardingRule(), showTablesStatement, logicSchema.getMetaData().getTables());
         return new QueryResponse(getQueryHeaders(schema));
     }
     
@@ -88,45 +80,6 @@ public final class ShowTablesBackendHandler implements TextProtocolBackendHandle
         return authorizedSchemas.isEmpty() || authorizedSchemas.contains(schema);
     }
     
-    private List<String> getTableNames(final String schema) {
-        LogicSchema logicSchema = LogicSchemas.getInstance().getLogicSchema(schema);
-        if (null == logicSchema || null == logicSchema.getShardingRule()) {
-            return Collections.emptyList();
-        } else {
-            return new ArrayList<>(logicSchema.getShardingRule().getLogicTableNames());
-        }
-    }
-    
-    private List<String> getTableTypes(final List<String> tableNames) {
-        return Lists.transform(tableNames, new Function<String, String>() {
-            @Override
-            public String apply(final String input) {
-                return "BASE TABLE";
-            }
-        });
-    }
-    
-    private String getPattern() {
-        return SQLUtil.getExactlyValue(showTablesStatement.getPattern());
-    }
-    
-    private List<String> filterWithPattern(final List<String> list, final String pattern) {
-        if (Strings.isNullOrEmpty(pattern)) {
-            return list;
-        }
-        List<String> result = new LinkedList<>();
-        String regex = pattern;
-        regex = regex.replace("?", ".");
-        regex = regex.replace("%", ".*");
-        for (String each : list) {
-            if (!each.matches(regex)) {
-                continue;
-            }
-            result.add(each);
-        }
-        return result;
-    }
-    
     private List<QueryHeader> getQueryHeaders(final String schema) {
         List<QueryHeader> result = Lists.newArrayListWithExpectedSize(showTablesStatement.isFull() ? 2 : 1);
         StringBuilder columnLabel = new StringBuilder().append("Tables_in_").append(schema);
@@ -141,12 +94,12 @@ public final class ShowTablesBackendHandler implements TextProtocolBackendHandle
     }
     
     @Override
-    public boolean next() throws SQLException {
+    public boolean next() {
         return null != mergedResult && mergedResult.next();
     }
     
     @Override
-    public QueryData getQueryData() throws SQLException {
+    public QueryData getQueryData() {
         if (showTablesStatement.isFull()) {
             return new QueryData(Lists.newArrayList(Types.VARCHAR, Types.VARCHAR), Lists.newArrayList(mergedResult.getValue(1, Object.class), mergedResult.getValue(2, Object.class)));
         } else {

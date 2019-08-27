@@ -43,6 +43,7 @@ import java.util.Set;
  * Runtime context for encrypt.
  *
  * @author zhangliang
+ * @author sunbufu
  */
 @Getter
 public final class EncryptRuntimeContext extends AbstractRuntimeContext<EncryptRule> {
@@ -52,6 +53,8 @@ public final class EncryptRuntimeContext extends AbstractRuntimeContext<EncryptR
     private static final String TYPE_NAME = "TYPE_NAME";
     
     private static final String INDEX_NAME = "INDEX_NAME";
+    
+    private static final String TABLE_TYPE = "TABLE_TYPE";
     
     private final TableMetas tableMetas;
     
@@ -65,7 +68,7 @@ public final class EncryptRuntimeContext extends AbstractRuntimeContext<EncryptR
         try (Connection connection = dataSource.getConnection()) {
             for (String each : encryptRule.getEncryptTableNames()) {
                 if (isTableExist(connection, each)) {
-                    tables.put(each, new TableMetaData(getColumnMetaDataList(connection, each, encryptRule), getIndexes(connection, each)));
+                    tables.put(each, new TableMetaData(getColumnMetaDataList(connection, each, encryptRule), getIndexes(connection, each), getTableType(connection, each).orNull()));
                 }
             }
         }
@@ -76,6 +79,15 @@ public final class EncryptRuntimeContext extends AbstractRuntimeContext<EncryptR
         try (ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), null, tableName, null)) {
             return resultSet.next();
         }
+    }
+    
+    private Optional<String> getTableType(final Connection connection, final String tableName) throws SQLException {
+        try (ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), null, tableName, null)) {
+            if (resultSet.next()) {
+                return Optional.of(resultSet.getString(TABLE_TYPE));
+            }
+        }
+        return Optional.absent();
     }
     
     private List<ColumnMetaData> getColumnMetaDataList(final Connection connection, final String tableName, final EncryptRule encryptRule) throws SQLException {
