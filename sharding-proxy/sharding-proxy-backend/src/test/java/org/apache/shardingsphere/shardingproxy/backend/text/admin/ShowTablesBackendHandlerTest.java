@@ -46,7 +46,7 @@ public class ShowTablesBackendHandlerTest {
     
     @Before
     public void setUp() {
-        MockLogicSchemasUtil.setLogicSchemas("sharding_db", 2);
+        MockLogicSchemasUtil.setLogicSchemasWithTableMetas("sharding_db", 2);
         MockLogicSchemasUtil.setLogicTablesOnLogicSchemas(Arrays.asList("t_user", "t_order", "t_order_item"), "sharding_db_0");
         ShardingProxyContext.getInstance().init(getAuthentication(), new Properties());
     }

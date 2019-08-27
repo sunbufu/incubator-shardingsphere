@@ -51,6 +51,26 @@ public final class MockLogicSchemasUtil {
     private static Map<String, LogicSchema> mockLogicSchemas(final String prefix, final int size) {
         Map<String, LogicSchema> result = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
+            result.put(prefix + "_" + i, mock(LogicSchema.class));
+        }
+        return result;
+    }
+    
+    /**
+     * set logic schemas with tableMetas for global registry.
+     * @param prefix prefix of schema
+     * @param size size of schemas
+     */
+    @SneakyThrows
+    public static void setLogicSchemasWithTableMetas(final String prefix, final int size) {
+        Field field = LogicSchemas.getInstance().getClass().getDeclaredField("logicSchemas");
+        field.setAccessible(true);
+        field.set(LogicSchemas.getInstance(), mockLogicSchemasWithTableMetas(prefix, size));
+    }
+    
+    private static Map<String, LogicSchema> mockLogicSchemasWithTableMetas(final String prefix, final int size) {
+        Map<String, LogicSchema> result = new HashMap<>(size);
+        for (int i = 0; i < size; i++) {
             result.put(prefix + "_" + i, getLogicSchema());
         }
         return result;

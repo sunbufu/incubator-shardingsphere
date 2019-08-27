@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.core.merge.dal;
 
+import com.google.common.collect.Lists;
 import org.apache.shardingsphere.core.execute.sql.execute.result.QueryResult;
 import org.apache.shardingsphere.core.merge.dal.show.ShowCreateTableMergedResult;
 import org.apache.shardingsphere.core.merge.dal.show.ShowDatabasesMergedResult;
@@ -25,6 +26,8 @@ import org.apache.shardingsphere.core.merge.dal.show.ShowOtherMergedResult;
 import org.apache.shardingsphere.core.merge.dal.show.ShowTableStatusMergedResult;
 import org.apache.shardingsphere.core.merge.dal.show.ShowTablesMergedResult;
 import org.apache.shardingsphere.core.merge.fixture.TestQueryResult;
+import org.apache.shardingsphere.core.metadata.table.TableMetaData;
+import org.apache.shardingsphere.core.metadata.table.TableMetas;
 import org.apache.shardingsphere.core.parse.sql.statement.dal.DALStatement;
 import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.ShowCreateTableStatement;
 import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.ShowDatabasesStatement;
@@ -32,6 +35,7 @@ import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.Show
 import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.ShowOtherStatement;
 import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.ShowTableStatusStatement;
 import org.apache.shardingsphere.core.parse.sql.statement.dal.dialect.mysql.ShowTablesStatement;
+import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,6 +47,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public final class DALMergeEngineTest {
     
@@ -62,17 +67,49 @@ public final class DALMergeEngineTest {
     }
     
     @Test
-    public void assertMergeForShowShowTableStatusStatement() throws SQLException {
+    public void assertMergeForShowTableStatusStatement() throws SQLException {
         DALStatement dalStatement = new ShowTableStatusStatement();
         DALMergeEngine dalMergeEngine = new DALMergeEngine(null, queryResults, dalStatement, null);
         assertThat(dalMergeEngine.merge(), instanceOf(ShowTableStatusMergedResult.class));
     }
     
     @Test
-    public void assertMergeForShowShowTablesStatement() throws SQLException {
-        DALStatement dalStatement = new ShowTablesStatement();
-        DALMergeEngine dalMergeEngine = new DALMergeEngine(null, queryResults, dalStatement, null);
+    public void assertMergeForShowTablesStatement() throws SQLException {
+        DALMergeEngine dalMergeEngine = new DALMergeEngine(getShardingRule(), queryResults, getShowTablesStatement(), getTableMetas());
         assertThat(dalMergeEngine.merge(), instanceOf(ShowTablesMergedResult.class));
+    }
+    
+    private ShardingRule getShardingRule() {
+        ShardingRule result = mock(ShardingRule.class);
+        List<String> logicTableNames = Lists.newArrayList("t_order", "t_order_item", "t_user", "t_unknown");
+        when(result.getLogicTableNames()).thenReturn(logicTableNames);
+        return result;
+    }
+    
+    private ShowTablesStatement getShowTablesStatement() {
+        final ShowTablesStatement result = new ShowTablesStatement();
+        result.setFull(true);
+        result.setSchema("sharding_db");
+        result.setPattern("t_order%");
+        return result;
+    }
+    
+    private TableMetas getTableMetas() {
+        final TableMetas result = mock(TableMetas.class);
+        TableMetaData orderTableMetaData = mock(TableMetaData.class);
+        when(orderTableMetaData.getType()).thenReturn("TABLE");
+        TableMetaData orderItemTableMetaData = mock(TableMetaData.class);
+        when(orderItemTableMetaData.getType()).thenReturn("VIEW");
+        TableMetaData userTableMetaData = mock(TableMetaData.class);
+        when(userTableMetaData.getType()).thenReturn("INFORMATION_SCHEMA");
+        TableMetaData unknownTableMetaData = mock(TableMetaData.class);
+        when(unknownTableMetaData.getType()).thenReturn("UNKNOWN");
+        
+        when(result.get("t_order")).thenReturn(orderTableMetaData);
+        when(result.get("t_order_item")).thenReturn(orderItemTableMetaData);
+        when(result.get("t_user")).thenReturn(userTableMetaData);
+        when(result.get("t_unknown")).thenReturn(unknownTableMetaData);
+        return result;
     }
     
     @Test
